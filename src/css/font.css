@@ -1,0 +1,16 @@
+:root{
+    --red:red;
+}
+#font1{
+    font-size: 50px;
+    color:grey;
+}
+
+.postcss1{
+    width: 100px;
+    height: 100px;
+    background-color: rebeccapurple;
+    display: flex;
+    transform: rotateX(130deg);
+    color: var(--green);
+}

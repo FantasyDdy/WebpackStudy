@@ -1,0 +1,24 @@
+@import "font.css";   /* 引入另一个css文件，webpack只需对bass解析即可*/
+:root{
+    --green:green;
+}
+body{
+    background:coral ;
+}
+/*不设置module里面的file-loader不可以打包*/
+body{                 
+    background-image: url('../img/bg.jpg');
+} 
+.glass{
+    height: 500px;
+    width: 700px;
+    background-image: url(../img/bike.jpg);
+}
+.postcss{
+    width: 100px;
+    height: 100px;
+    background-color:pink;
+    display: flex;
+    transform: rotateX(130deg);
+    color: var(--green);
+}
