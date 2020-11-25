@@ -12,7 +12,7 @@ body{
 .glass{
     height: 500px;
     width: 700px;
-    background-image: url(../img/bike.jpg);
+    background-image: url('../img/bike.jpg');
 }
 .postcss{
     width: 100px;

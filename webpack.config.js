@@ -25,7 +25,7 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 
 module.exports={                      //webpack的五个核心【entry\output\module\plugin\mode】
     //入口文件（单个入口）
-    // entry:'./src/js/index.js',           //webpack会根据入口文件来打包入口文件的依赖和依赖的依赖
+    // entry:'./src/js/index.js',           //webpack会根据入口文件来打包入口文件的依赖和依赖的依赖,entry默认值为：'./src/index.js'
 
     //多个入口文件配置
     entry:{
@@ -45,7 +45,7 @@ module.exports={                      //webpack的五个核心【entry\output\mo
         //路径（绝对路径）
         path:path.resolve(__dirname,'./dist'),   //正式打包的bundle.js\html文件\css文件都会都会被打包在"dist"目录下面。
                                                  //path.resolve是nodeJs里面方法，可以连接两个相对路径并生成绝对路径
-        // outputPath:'js'
+        // outputPath:'js'                       //我不懂outputPath
         // publicPath:'/dist2/'  
         /* 
         ★output的publicPath和devserver的publiPath作用并不相同。
@@ -55,11 +55,12 @@ module.exports={                      //webpack的五个核心【entry\output\mo
         经实验，output的确实只是在url前面加上了'/dist2',且并不会生成‘dist2’文件目录，资源也并不存放在‘dist2’内,只是给所有引入的资源url前加入了配置的前缀目录。
         在生产环境时，有时候我们需要将我们的静态资源进行CDN托管这个时候我们只需要将config.build.publicPath换成CDN地址就好了。
         */
-        // PS:  1.配置publicPath时最好写/publicPath/，不然html页面在访问生成静态资源路径时可能会出现找不到资源   
     },
 
 
     //模块解析
+    //对引入的模块解析时，会按照extensions数组内的后缀去解析文件，这样引入的文件不用加后缀了，webpack打包时会自动匹配。
+    //比如： import {addts} from '../js/ts1' 后面就不用加'.ts'后缀了
     resolve:{
         //导入路径省略后缀
         extensions:['.ts','.js','.json','.css','.less','.scss'],  //加入 ,'.jpg','jpeg' 后得以证明可以对html的图片可以后缀省略，但是js的css图片后缀不可以省略
@@ -74,43 +75,52 @@ module.exports={                      //webpack的五个核心【entry\output\mo
 
     //配置webpack-dev-server    //【调试用的打包工具】 -- 动态刷新，实时调试。
     devServer:{              
-        contentBase:path.resolve(__dirname,'devserver'),  //运行代码的目录
-        //contentBase配置html页面的默认目录，不配置devserver默认为根目录，访问 http://localhost:3000/展现的是文件资源，因为根目录下我们并没有index.html文件
-        //实验证明不配置的话 http://localhost:3000/就会打开根目录下的‘index.html’文件。且要注意contentBase的路径是相对webpack.config.js文件的。
-
-        // publicPath:'/dist1/', 
-        // 在devServer的publicPath作用:
-        /* 虚拟打包的和加载的所用资源都放入的文件夹。
-        ★devserver的publicpath并不会影响资源生成路径(比如插件url-loader，html-webpack-plugin生成的路径)。而是作为文件夹将内存打包的资源文件存放在此目录内，可访问不可见。
-        项目中用到了html-webpack-plugin的时候，如果output也配置publicPath，那么插件、加载器的url前面的也会加上它的前缀。
-        因为html-webpack-plugin在嵌入静态资源的时候使用的是output的publicPath，会导致在devServer运行的时候加载资源报错
-        所以此时应该让devserver的publicPath和output的publicPath保持一致。 */
-
-        //PS: devserver中outputPath:'/dist3',   //不可写，会报错
-
+        // contentBase:path.resolve(__dirname,'devserver'),  //运行代码的目录(目前对我来说这个没有，我也不知道怎样用)
+        //官网：contentBase告诉服务器内容的来源，仅在需要提供静态文件时才进行配置。并优先级低于 devServer.publicPath
         /* 
-            ####配置devserver-publicPath对正式打包和虚拟打包的影响####
-            
-            一、正式打包情况下：
-            output正式打包，于devserver无关，无论是js文件还是加载器加载的各种其他类型文件，都会放在'output--'path'内。
-            但devserver内存打包却要注意output的配置,尤其是'path'和'publicPath'
+            contentbase代表html页面所在的相对目录，如果我们不配置此项，devServer默认html所在的目录就是项目的根目录，
+        这个时候启动服务就会展现项目根目录的资源列表。另：contentBase的路径是相对webpack.config.js文件的。
+        */
 
-            二、devserver调试打包情况下：
-                一.不需要对html文件打包时：
+        publicPath:'/dist2/',  // 作用: 虚拟打包的和加载的所用资源都放入此目录,默认为：'/',不配置则为output的publicPath
+        //官网：devServer.publicPath 将用于确定 bundle 的来源，并具有优先级高于 contentBase。
+        /*  
+            ####devServer.publicPath和output.publicPath的关系与区别:####
+
+            Webpack是按照相关配置项来进行打包，devServe只是提供了一个开发服务器让代码在内存中打包并运行。
+        devserver的publicPath并不会影响资源生成路径(比如插件url-loader，html-webpack-plugin生成的路径)。
+        而是将内存打包后的文件放在特定目录下，可访问不可见(在内存中)。
+            1.如果devServer和output都配置publicPath，★那么devserver的publicPath就要和output的publicPath保持一致，因为
+        打包后的资源生成路径前面会加上ouput.publicPath的前缀，这就会导致在devServer打包后页面引用资源路径都是错的。
+            2.如果只有devServer配置publicPath，那么虚拟打包后只需要在url路径后面加上devServer.publicPath配置的目录地址就行，
+        不会有其他影响。
+            3.如果只有output配置publicPath，那么虚拟打包的时候devServer.publicPath则会认为是output里面设置的publicPath的值。
+            4.正式打包按照配置来与devserver无关，内存打包却要注意output的配置,尤其是'path'和'publicPath'
+
+        so!这两个publicPath基本上是连体兄弟，如果在开发环境中配置了output的publicPath，那么在devServer中也要做相应的配置。
+
+        另: 配置devServer的publicPath时确保始终以正斜杠'/'开头和结尾，不然html页面在访问生成静态资源路径时可能会出现找不到资源
+            比如：devserver中outputPath:'/dist3',   //报错
+
+        总结：  
+            1.output的publicPath是用来给生成的静态资源路径添加前缀的；
+            2.devServer中的publicPath是用来本地服务拦截带publicPath开头的请求的；
+            3.contentBase是用来指定被访问html页面所在目录的；
+         */
+        /* 
+            devserver调试打包情况下：
+                1.不需要对html文件打包时：
                     publicPath只需要与output-path(绝对路径)保持一致,那么内存中的html内的引用依然可以通过路径找到本地资源。
                     比如：正式打包的output-path为：“D:\VsCodeWorking\WebpackStudy\dist”，那么publicPath则设置为'/dist'
 
-                二.需要对html文件打包时：
+                2.需要对html文件打包时：
                     1.不配置devserver的publicPath的情况下:
                     资源文件（js、html、css、图片）：都方在默认的‘/’内,比如：http://localhost:3030/index.html、http://localhost:3030/js/bundle.js
 
                     2.配置了devserver的publicPath的情况下：
                     资源文件（js、html、css、图片）：所用内存打包的资源都会放入这个配置的文件目录下
-            总结：  
-                    1.output的publicPath是用来给生成的静态资源路径添加前缀的；
-                    2.devServer中的publicPath是用来本地服务拦截带publicPath开头的请求的；
-                    3.contentBase是用来指定被访问html页面所在目录的；
          */
+
         //端口号
         port:3000,
         //显示简略信息
@@ -123,7 +133,7 @@ module.exports={                      //webpack的五个核心【entry\output\mo
             //忽略文件
             ignored:'/node_modules/'
         },
-        //开启HMR热替换功能
+        //开启HMR热替换功能(太麻烦，弃学)
         // hot:true,
         //设置代理
         proxy:{
@@ -155,8 +165,8 @@ module.exports={                      //webpack的五个核心【entry\output\mo
                 test:/\.css$/i,                               //css文件加载器，让webpack可以打包css类型文件
                 // use的执行顺寻时从右往左
                 use:['style-loader','css-loader']             //当有多个加载器执行时，可以用数组形式
-
             },
+
             //less文件
             {
                 test:/\.less$/i,                              
@@ -168,7 +178,6 @@ module.exports={                      //webpack的五个核心【entry\output\mo
             },
             */
 
-
             //css、less、Scss以独立文件形式引入html的加载器
             //css文件
             {
@@ -178,13 +187,14 @@ module.exports={                      //webpack的五个核心【entry\output\mo
                         loader:csspack.loader,   
                         options:{                
                             //outputPath:'css111/',          正式和虚拟打包都不支持，I don't know why...
-                            publicPath:'../'                //css内的图片url加上‘../’来返回上次菜单，css内的图片url需要相对css文件本身才可以被访问到。
+                            publicPath:'../'                //css内的资源url加上‘../’来返回上次菜单，css内的图片url需要相对css文件本身才可以被访问到。
                         }                                   //这边publicPath配置什么，取决于css文件和它引用的文件的关系
+                                                            //loader的publicPath相当于范围缩小的output.publicPath，给资源url加上前缀
                     },                         
                     {
                         loader:'css-loader',
                         options:{
-                            importLoaders:1                 //表示对import引入进来的css也可以被解析，这样ipmort进来的css也可以被转换兼容
+                            importLoaders:1                 //表示对@import引入进来的css也可以被解析，这样@ipmort进来的css也可以被转换兼容
                         }
                     },
                     'postcss-loader'                         //对css4语言以下采取兼容支持
@@ -232,7 +242,7 @@ module.exports={                      //webpack的五个核心【entry\output\mo
                     name:'src1/img/[name].[ext]',
                     esModule:false
                 }
-            },  */
+            }, */
 
             //url-loader 加载JS/CSS图片
             {
@@ -245,8 +255,6 @@ module.exports={                      //webpack的五个核心【entry\output\mo
                     // name:'[name].[ext]', 
                     // outputPath:'img',
                     esModule:false,                          //记得要将是否使用es语法，设置false，不然js内图片打包会出现 [object Module] 的情况
-
-                    // publicPath:'../',
                 }       
             },
 
@@ -299,12 +307,13 @@ module.exports={                      //webpack的五个核心【entry\output\mo
         //实例化一个打包HTML文件插件对象
         new hwp({
             template:'./src/index.html',         //不写，默认也是src下的index.html 【需要被打包的html文件】 
-            filename:'index.html',
+            filename:'index.html',               //如果filename中有添加目录，则在虚拟打包中要url路径后添加此目录才能访问到index.html
             chunks:['index']                     //通过chunks来分别为html页面加载不同的js文件
+            //chunks:['index','list']            //如果此html文件需要记载多个人口js文件
         }),
         //不同的html页面加载不同的js文件
         new hwp({
-            template:'./src/list.html',         //不写，默认也是src下的index.html 【需要被打包的html文件】 
+            template:'./src/list.html',
             filename:'list.html',
             chunks:['list']
         }),
@@ -313,7 +322,7 @@ module.exports={                      //webpack的五个核心【entry\output\mo
             template:'./src/index.html',
             filename:'index2.html',
             chunks:['list'],
-            /* minify:{                        //在开发模式下也可以对html进行打包压缩
+            /* minify:{                        //在开发模式下也可以对html进行打包压缩,一般不用,生产模式下hwp插件会自动压缩html代码
                 collapseWhitespace:true,       //去掉空格
                 removeComments:true            //去掉注释
             } */
@@ -328,15 +337,17 @@ module.exports={                      //webpack的五个核心【entry\output\mo
         // new cssoptimize()    //配置后内存打包中的css也会压缩，不需要压缩css文件的话注释掉即可,
 
         //clean清理
-        new CleanWebpackPlugin({cleanStaleWebpackAssets:false}),  //要注意，在watch模式下，CleanWebpackPlugin 里的 cleanStaleWebpackAssets 要设置为 false 
-                                                                     //防止监听到改变时把没有改变的文件给清除了,同时还可以继续每次打包时清理旧的打包文件
+        // new CleanWebpackPlugin(),  
+        new CleanWebpackPlugin({cleanStaleWebpackAssets:false}),  
+        //要注意，在watch模式下，CleanWebpackPlugin 里的 cleanStaleWebpackAssets 要设置为 false 
+        //防止监听到内容改变时把没有改变的文件给清除了,同时还可以继续每次打包时清理旧的打包文件
     ],
 
 
     //watch
     //文件监听
-    // watch:true,
-    watch:false,
+    watch:true,
+    // watch:false,
     
     //开启文件监听后，可以设置更多
     watchOptions:{

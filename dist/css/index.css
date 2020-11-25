@@ -1,0 +1,55 @@
+:root{
+    --red:red;
+}
+#font1{
+    font-size: 50px;
+    color:grey;
+}
+
+.postcss1{
+    width: 100px;
+    height: 100px;
+    background-color: #639;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-transform: rotateX(130deg);
+            transform: rotateX(130deg);
+    color: var(--green);
+}
+/* 引入另一个css文件，webpack只需对bass解析即可*/
+:root{
+    --green:green;
+}
+body{
+    background:coral ;
+}
+/*不设置module里面的file-loader不可以打包*/
+body{                 
+    background-image: url(data:image/jpeg;base64,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);
+} 
+.glass{
+    height: 500px;
+    width: 700px;
+    background-image: url(../src1/img/bike.jpg);
+}
+.postcss{
+    width: 100px;
+    height: 100px;
+    background-color:pink;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-transform: rotateX(130deg);
+            transform: rotateX(130deg);
+    color: green;
+    color: var(--green);
+}
+#font2 {
+  font-size: 30px;
+  color: chocolate;
+}
+
+strong {
+  color: green;
+}

@@ -13,12 +13,12 @@ console.log(md1.name);
         webpack src/index.js -o dist/bundle.js --mode=development
 但是语句过于繁琐，处理方式有两种：
 方法一：
-配置package.json里的script属性，添加属性:build，"build":"npx webpack src/index.js -o dist/bundle.js --mode=development"
-控制台中只要执行：  npm run build
+   配置package.json里的script属性，添加属性:build，"build":"npx webpack src/index.js -o dist/bundle.js --mode=development"
+   控制台中只要执行：  npm run build
 
 方法二：（★）
-方法一只适合简单的项目打包，webpack还提供了一个package.config.json配置文件
-控制台只要输入：    webpack
+   方法一只适合简单的项目打包，webpack还提供了一个package.config.json配置文件
+   控制台只要输入：    webpack
  */
 
 
@@ -35,10 +35,15 @@ console.log(md1.name);
     html文件进行打包，可以通过webpack提供的html插件
     打包后的html会自动绑定webpack配置文件内出口文件的JS文件地址,所以打包前html不需要手写引入打包后的js路径。
 
-    PS:默认打包的html文件是src文件下的index.html（存疑）
+    PS:默认打包的html文件是src文件下的index.html
+
+   为什么要对html文件打包？
+      因为如果只对js文件或者json文件打包，那么打包上线后，html文件需要把各种js、甚至css(对css文件也打包后)的引用地址都改为打包
+   后的静态资源引用地址，如果将html也作为需要被打包的文件，就不用在html内写静态的js甚至是css文件的文件地址，webpack通过配置就可
+   以在打包后自动给html添加对应的文件引用地址，这样就不用在上线后手动替换html内的静态资源引用地址了.
  */
  
- //mini-css-extract-plugin【css打包插件】【单独的css文件形式】
+//mini-css-extract-plugin【css打包插件】【单独的css文件形式】
 
 //webpack-module
 //moudle是帮助webpack可以加载各种类型文件的加载器的集合
@@ -48,10 +53,10 @@ console.log(md1.name);
 
 
 //对css文件进行打包【以<style>的形式】
-//'style-loader','css-loader','less-loader'【css文件打包】 loader意为"加载器"
+//'style-loader','css-loader','less-loader'【css文件打包】 loader意为"加载器"【需下载,loader属于module不同于plugin】
 
 //引入css文件
-require('$css/b ase');  //$css是路径别名，一个绝对路径
+require('$css/base');  //$css是路径别名，一个绝对路径
 
 //引入less文件
 require('../css/test');
@@ -69,7 +74,7 @@ require('../css/test');
 
 //对图片进行打包
 //'file-loader','url-loader','html-loader'【图片文件打包】
-//webpack需要通过在module功能内引入'url-loader','html-loader'来完成webpack对图片的打包
+//webpack需要通过在module功能内引入'url-loader','html-loader'来完成webpack对图片的打包,否则遇到图片资源会报错
 /* 
    'file-loader'解析js和css文件内的图片
    'url-loader'依赖与'file-loader'并且可以将图片转换为base64编码字符串
@@ -193,7 +198,7 @@ require('../css/strong');
  
  //压缩打包html\js\css文件
  /*
-    1.webpack设置成生产模式：mode:'production'，html、js文件就会自动压缩(变成一行)
+    1.webpack设置成生产模式：mode:'production'，html(因为安装了html打包插件)、js文件就会自动压缩(变成一行)
     
     2.html文件在开发模式下也可以通过实例化html打包插件中添加minify:{...}来设置成压缩格式
 
@@ -243,7 +248,14 @@ require('../css/strong');
   //需要配置过的跨域地址
   import axios from 'axios';
   axios.get('http:/api/data.json').then(res=>console.log(res.data));
+  //替换需要代理的url为一个虚拟目录，如'/api'，然后在devServer中匹配虚拟目录进行代理
+  //PS:在打包文件中这里会报错，因为打包文件中并没有devServer代理对目录进行代理
 
+  //dist 服务
+  //打包后，我们想要在静态服务器上测试，先要安装静态服务器；
+  //npm i serve -g  //安装(已安装)
+  //serve dist -s  //运行dist目录
+  //PS:在vscode 中我安装了live Server插件也可以实现模拟本地服务器运行代码
 
   //环境分离设置在项目 WebpackStudyfl
 
